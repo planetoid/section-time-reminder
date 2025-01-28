@@ -105,139 +105,61 @@
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // 儲存場次的陣��
-        let sessions = [];
-
-        // 預設場次時間
-        const defaultSessions = [];
-
-        // 提醒時間設定（分鐘）
-        const reminderOffsets = [
-            { minutes: 10, message: '10 分鐘' },
-            { minutes: 5, message: '5 分鐘' },
-            { minutes: 1, message: '1 分鐘' },
-            { minutes: 0, message: '時間到' }
-        ];
-
-        // 新增單個場次
-        function addSession() {
+    <!-- 引入 SessionManager 模組 -->
+    <script type="module">
+        import { SessionManager } from './modules/session-manager.js';
+        
+        // 創建全局實例
+        window.sessionManager = new SessionManager();
+        
+        // 初始化全局函數
+        window.addSession = function() {
             const timeInput = document.getElementById('timeInput');
-            if (!timeInput.value) {
+            const time = timeInput.value;
+            
+            if (!time) {
                 alert('請輸入時間！');
                 return;
             }
 
-            const newTime = timeInput.value;
-            
-            // 檢查是否已存在相同時間
-            if (sessions.some(session => session.endTime === newTime)) {
-                alert('此時間已存在！');
-                return;
+            try {
+                window.sessionManager.addSession(time);
+                updateSessionList();
+                timeInput.value = '';
+            } catch (error) {
+                alert(error.message);
             }
+        };
 
-            // 新增時間並重新排序
-            sessions.push({ endTime: newTime });
-            sessions.sort((a, b) => a.endTime.localeCompare(b.endTime));
+        window.addDefaultSessions = function() {
+            const input = document.getElementById('defaultTimesInput');
+            const times = input.value.split(',').map(time => time.trim());
             
-            // 更新顯示
-            updateSessionList();
-            timeInput.value = '';
-        }
-
-        // 快速添加預設時間
-        function addDefaultSessions() {
-            const input = document.getElementById('defaultTimesInput').value;
-            const times = input.split(',').map(time => time.trim());
-            
-            // 驗證時間格式
-            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-            const invalidTimes = times.filter(time => !timeRegex.test(time));
-            
-            if (invalidTimes.length > 0) {
-                alert(`以下時間格式無效：${invalidTimes.join(', ')}\n請使用 HH:MM 格式`);
-                return;
+            try {
+                window.sessionManager.addMultipleSessions(times);
+                updateSessionList();
+            } catch (error) {
+                alert(error.message);
             }
-            
-            sessions = times.map(time => ({ endTime: time }));
-            sessions.sort((a, b) => a.endTime.localeCompare(b.endTime));
-            updateSessionList();
-        }
+        };
 
-        // 刪除特定場次
-        function deleteSession(time) {
-            sessions = sessions.filter(session => session.endTime !== time);
+        window.deleteSession = function(time) {
+            window.sessionManager.deleteSession(time);
             updateSessionList();
-        }
+        };
 
-        // 清除所有場次
-        function clearAllSessions() {
+        window.clearAllSessions = function() {
             if (confirm('確定要清除所有場次嗎？')) {
-                sessions = [];
+                window.sessionManager.clearAllSessions();
                 updateSessionList();
             }
-        }
+        };
 
-        // 解析時間字串為 Date 物件
-        function parseTimeString(timeStr) {
-            // 移除 "上午" 或 "下午" 並分割時間
-            const cleanTime = timeStr.replace(/上午|下午/g, '').trim();
-            const [hours, minutes] = cleanTime.split(':').map(Number);
-            
-            // 判斷是否為下午時間（如果時間字串包含 "下午" 且小時小於 12）
-            const isPM = timeStr.includes('下午') && hours < 12;
-            
-            const date = new Date();
-            date.setHours(isPM ? hours + 12 : hours);
-            date.setMinutes(minutes);
-            date.setSeconds(0);
-            date.setMilliseconds(0);
-            
-            return date;
-        }
-
-        // 計算時間差（返回剩餘時間物件）
-        function getTimeRemaining(futureTimeStr) {
-            const now = new Date();
-            const future = parseTimeString(futureTimeStr);
-            
-            // 如果時間已過，則加 24 小時
-            if (future < now) {
-                future.setDate(future.getDate() + 1);
-            }
-
-                            const diff = future - now;
-            
-            // 如果時間差為負數（已過期），返回全部為0的時間
-            if (diff < 0) {
-                return {
-                    total: diff,
-                    hours: 0,
-                    minutes: 0,
-                    seconds: 0,
-                    isExpired: true
-                };
-            }
-            
-            return {
-                total: diff,
-                hours: Math.floor(diff / (1000 * 60 * 60)),
-                minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-                seconds: Math.floor((diff % (1000 * 60)) / 1000),
-                isExpired: false
-            };
-        }
-
-        // 格式化倒數時間
-        function formatCountdown(timeObj) {
-            if (timeObj.isExpired) return '0時0分0秒';
-            if (timeObj.total < 0) return '0時0分0秒';
-            return `${timeObj.hours}時${timeObj.minutes}分${timeObj.seconds}秒`;
-        }
-
-        // 更新場次列表和倒數計時顯示
+        // 更新場次列表顯示
         function updateSessionList() {
             const sessionList = document.getElementById('session-list');
+            const sessions = window.sessionManager.getSessions();
+            
             if (sessions.length === 0) {
                 sessionList.innerHTML = `
                     <div class="alert alert-info text-center">
@@ -248,45 +170,17 @@
             }
 
             sessionList.innerHTML = sessions.map(session => {
-                const reminderTimes = reminderOffsets.map(offset => {
-                    // 解析場次結束時間
-                    const [hours, minutes] = session.endTime.split(':').map(Number);
-                    const reminderTime = new Date();
-                    // 設定結束時間
-                    reminderTime.setHours(hours, minutes, 0, 0);
-                    // 減去提醒的分鐘數
-                    reminderTime.setMinutes(reminderTime.getMinutes() - offset.minutes);
-                    
-                    // 格式化提醒時間
-                    const reminderTimeStr = reminderTime.toLocaleTimeString('zh-TW', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true // 使用12小時制
-                    });
-
-                    // 創建倒數計時，直接使用 reminderTime 而不是字串
-                    const countdown = {
-                        total: reminderTime - new Date(),
-                        hours: Math.floor((reminderTime - new Date()) / (1000 * 60 * 60)),
-                        minutes: Math.floor(((reminderTime - new Date()) % (1000 * 60 * 60)) / (1000 * 60)),
-                        seconds: Math.floor(((reminderTime - new Date()) % (1000 * 60)) / 1000)
-                    };
-
-                    return {
-                        time: reminderTimeStr,
-                        message: offset.message,
-                        countdown: countdown
-                    };
-                });
-
-                // 生成場次卡片 HTML
+                const reminderTimes = window.sessionManager.calculateReminderTimes(session.endTime);
+                
                 return `
                     <div class="card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <h5 class="mb-0">
                                 <i class="bi bi-clock me-2"></i>場次結束時間：${session.endTime}
                                 <span class="badge bg-primary ms-2">
-                                    剩餘：${formatCountdown(getTimeRemaining(session.endTime))}
+                                    剩餘：${window.sessionManager.formatCountdown(
+                                        window.sessionManager.getTimeRemaining(session.endTime)
+                                    )}
                                 </span>
                             </h5>
                             <button class="btn btn-outline-danger btn-sm" onclick="deleteSession('${session.endTime}')">
@@ -298,15 +192,15 @@
                                 ${reminderTimes.map(reminder => `
                                     <div class="col-md-3 mb-2">
                                         <div class="card ${
-                                            reminder.countdown.total < 0 ? 'bg-secondary text-white' : // 已過期
-                                            reminder.countdown.total <= 30000 ? 'bg-danger text-white' : // 30秒內
-                                            'bg-white' // 30秒前
+                                            reminder.countdown.total < 0 ? 'bg-secondary text-white' : 
+                                            reminder.countdown.total <= 30000 ? 'bg-danger text-white' : 
+                                            'bg-white'
                                         }">
                                             <div class="card-body p-2 text-center">
                                                 <h6 class="card-title">${reminder.message}</h6>
                                                 <p class="card-text mb-1" style="opacity: 0.9">提醒時間：${reminder.time}</p>
                                                 <p class="card-text fw-bold countdown-text">
-                                                    剩餘：${formatCountdown(reminder.countdown)}
+                                                    剩餘：${window.sessionManager.formatCountdown(reminder.countdown)}
                                                 </p>
                                             </div>
                                         </div>
@@ -319,18 +213,13 @@
             }).join('');
         }
 
-        // 格式化時間
-        function formatTime(date) {
-            return date.toLocaleTimeString('zh-TW', {
+        // 更新當前時間顯示
+        function updateCurrentTime() {
+            const currentTime = new Date().toLocaleTimeString('zh-TW', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-        }
-
-        // 更新當前時間顯示
-        function updateCurrentTime() {
-            const currentTime = new Date();
-            document.getElementById('current-time').textContent = formatTime(currentTime);
+            document.getElementById('current-time').textContent = currentTime;
         }
 
         // 初始化應用
@@ -338,7 +227,7 @@
             // 更新當前時間和倒數計時
             setInterval(() => {
                 updateCurrentTime();
-                updateSessionList(); // 更新所有倒數計時
+                updateSessionList();
             }, 1000);
 
             // 立即執行一次
