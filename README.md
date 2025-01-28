@@ -83,4 +83,5 @@ The application uses modern JavaScript features and should be compatible with:
 
 ## License
 
-[[LICENSE]]
+See the [LICENSE](LICENSE) file for details.
+
