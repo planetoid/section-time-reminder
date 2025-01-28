@@ -3,184 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間提醒系統</title>
+    <title>Time Reminder System | 時間提醒系統</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <div class="container mt-4">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0">
-                        <i class="bi bi-clock me-2"></i>場次時間提醒
-                    </h2>
-                    <div id="current-time" class="h4 mb-0"></div>
-                </div>
-            </div>
-            <div class="card-body">
-                <!-- 新增時間輸入區域 -->
-                <div class="mb-4">
-                    <h3 class="mb-3">
-                        <i class="bi bi-plus-circle me-2"></i>新增場次時間
-                    </h3>
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label for="timeInput" class="form-label">輸入結束時間</label>
-                            <input type="time" class="form-control" id="timeInput">
-                        </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-primary" onclick="addSession()">
-                                <i class="bi bi-plus me-2"></i>新增單一場次
-                            </button>
-                        </div>
-                    </div>
-                    <!-- 快速添加預設時間 -->
-                    <div class="mt-3">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <input type="text" class="form-control" id="defaultTimesInput" 
-                                       placeholder="請輸入預設時間，用逗號分隔 (例如: 11:00,12:05,14:00)"
-                                       value="11:00,12:05,14:00,15:10,17:00">
-                            </div>
-                            <div class="col-md-4">
-                                <button class="btn btn-outline-secondary" onclick="addDefaultSessions()">
-                                    <i class="bi bi-lightning me-1"></i>新增多個場次
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="container mt-4">
+    <!-- Language Toggle Button -->
+    <div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-outline-primary" onclick="toggleLanguage()" id="langToggleBtn">
+            <i class="bi bi-translate me-2"></i>
+            <span data-lang="zh">Englsih</span>
+            <span data-lang="en" style="display: none;">中文</span>
+        </button>
+    </div>
 
-                <div class="row">
-                    <!-- 場次列表與倒數時間 -->
-                    <div class="col-md-12">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="mb-0">
-                                <i class="bi bi-calendar-event me-2"></i>場次與提醒時間
-                            </h3>
-                            <button class="btn btn-outline-danger btn-sm" onclick="clearAllSessions()">
-                                <i class="bi bi-trash me-1"></i>清除全部
-                            </button>
-                        </div>
-                        <div id="session-list">
-                            <!-- 場次時間和倒數計時會在這裡動態插入 -->
-                        </div>
-                    </div>
-                </div>
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>
+                    <span data-lang="zh">場次時間提醒</span>
+                    <span data-lang="en" style="display: none;">Session Time Reminder</span>
+                </h2>
+                <div id="current-time" class="h4 mb-0"></div>
             </div>
         </div>
-        <!-- 新增顏色說明區域 -->
-        <div class="card mt-4 shadow-sm">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">
-                    <i class="bi bi-info-circle me-2"></i>顏色說明
-                </h5>
+        <div class="card-body">
+            <!-- Add Time Input Section -->
+            <div class="mb-4">
+                <h3 class="mb-3">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    <span data-lang="zh">新增場次時間</span>
+                    <span data-lang="en" style="display: none;">Add Session Time</span>
+                </h3>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="timeInput" class="form-label">
+                            <span data-lang="zh">輸入結束時間</span>
+                            <span data-lang="en" style="display: none;">Enter End Time</span>
+                        </label>
+                        <input type="time" class="form-control" id="timeInput">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary" onclick="addSession()">
+                            <i class="bi bi-plus me-2"></i>
+                            <span data-lang="zh">新增單一場次</span>
+                            <span data-lang="en" style="display: none;">Add Single Session</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Quick Add Default Times -->
+                <div class="mt-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="defaultTimesInput"
+                                   data-placeholder-zh="請輸入預設時間，用逗號分隔 (例如: 11:00,12:05,14:00)"
+                                   data-placeholder-en="Enter preset times, separated by commas (e.g., 11:00,12:05,14:00)"
+                                   value="11:00,12:05,14:00,15:10,17:00">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-secondary" onclick="addDefaultSessions()">
+                                <i class="bi bi-lightning me-1"></i>
+                                <span data-lang="zh">新增多個場次</span>
+                                <span data-lang="en" style="display: none;">Add Multiple Sessions</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center">
-                            <div class="card bg-white border me-2" style="width: 30px; height: 30px;"></div>
-                            <span>提醒時間30秒前</span>
-                        </div>
+
+            <div class="row">
+                <!-- Session List and Countdown -->
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="mb-0">
+                            <i class="bi bi-calendar-event me-2"></i>
+                            <span data-lang="zh">場次與提醒時間</span>
+                            <span data-lang="en" style="display: none;">Sessions & Reminder Times</span>
+                        </h3>
+                        <button class="btn btn-outline-danger btn-sm" onclick="clearAllSessions()">
+                            <i class="bi bi-trash me-1"></i>
+                            <span data-lang="zh">清除全部</span>
+                            <span data-lang="en" style="display: none;">Clear All</span>
+                        </button>
                     </div>
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center">
-                            <div class="card bg-danger me-2" style="width: 30px; height: 30px;"></div>
-                            <span>提醒時間30秒內</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center">
-                            <div class="card bg-secondary me-2" style="width: 30px; height: 30px;"></div>
-                            <span>已過期提醒</span>
-                        </div>
+                    <div id="session-list">
+                        <!-- Dynamic session times and countdowns will be inserted here -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Color Legend Section -->
+    <div class="card mt-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                <span data-lang="zh">顏色說明</span>
+                <span data-lang="en" style="display: none;">Color Legend</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="card bg-white border me-2" style="width: 30px; height: 30px;"></div>
+                        <span data-lang="zh">提醒時間30秒前</span>
+                        <span data-lang="en" style="display: none;">More than 30 seconds before reminder</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="card bg-danger me-2" style="width: 30px; height: 30px;"></div>
+                        <span data-lang="zh">提醒時間30秒內</span>
+                        <span data-lang="en" style="display: none;">Within 30 seconds of reminder</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="card bg-secondary me-2" style="width: 30px; height: 30px;"></div>
+                        <span data-lang="zh">已過期提醒</span>
+                        <span data-lang="en" style="display: none;">Expired reminder</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 
-    <!-- 引入 SessionManager 模組 -->
-    <script type="module">
-        import { SessionManager } from './modules/session-manager.js';
-        
-        // 創建全局實例
-        window.sessionManager = new SessionManager();
-        
-        // 初始化全局函數
-        window.addSession = function() {
-            const timeInput = document.getElementById('timeInput');
-            const time = timeInput.value;
-            
-            if (!time) {
-                alert('請輸入時間！');
-                return;
+<!-- Language Support and Session Manager -->
+<script type="module">
+    import { SessionManager } from './modules/session-manager.js';
+
+    // Language dictionary
+    const translations = {
+        remaining: {
+            zh: '剩餘：',
+            en: 'Remaining: '
+        },
+        reminderTime: {
+            zh: '提醒時間：',
+            en: 'Reminder at: '
+        },
+        sessionEndTime: {
+            zh: '場次結束時間：',
+            en: 'Session End Time: '
+        },
+        noSessions: {
+            zh: '尚未新增任何場次',
+            en: 'No sessions added yet'
+        },
+        confirmClear: {
+            zh: '確定要清除所有場次嗎？',
+            en: 'Are you sure you want to clear all sessions?'
+        },
+        inputTimeError: {
+            zh: '請輸入時間！',
+            en: 'Please enter a time!'
+        }
+    };
+
+    // Create global instance
+    window.sessionManager = new SessionManager();
+    window.currentLang = 'zh';
+
+    // Language toggle function
+    window.toggleLanguage = function() {
+        const newLang = window.currentLang === 'zh' ? 'en' : 'zh';
+        window.currentLang = newLang;
+
+        // Update all language elements
+        document.querySelectorAll('[data-lang]').forEach(el => {
+            if (el.dataset.lang === newLang) {
+                el.style.display = '';
+            } else {
+                el.style.display = 'none';
             }
+        });
 
-            try {
-                window.sessionManager.addSession(time);
-                updateSessionList();
-                timeInput.value = '';
-            } catch (error) {
-                alert(error.message);
-            }
-        };
+        // Update input placeholder
+        const defaultTimesInput = document.getElementById('defaultTimesInput');
+        defaultTimesInput.placeholder = defaultTimesInput.dataset[`placeholder${newLang.toUpperCase()}`];
 
-        window.addDefaultSessions = function() {
-            const input = document.getElementById('defaultTimesInput');
-            const times = input.value.split(',').map(time => time.trim());
-            
-            try {
-                window.sessionManager.addMultipleSessions(times);
-                updateSessionList();
-            } catch (error) {
-                alert(error.message);
-            }
-        };
+        // Update document language
+        document.documentElement.lang = newLang === 'zh' ? 'zh-TW' : 'en';
 
-        window.deleteSession = function(time) {
-            window.sessionManager.deleteSession(time);
+        // Refresh session list to update translations
+        updateSessionList();
+    };
+
+    // Initialize global functions
+    window.addSession = function() {
+        const timeInput = document.getElementById('timeInput');
+        const time = timeInput.value;
+
+        if (!time) {
+            alert(translations.inputTimeError[window.currentLang]);
+            return;
+        }
+
+        try {
+            window.sessionManager.addSession(time);
             updateSessionList();
-        };
+            timeInput.value = '';
+        } catch (error) {
+            alert(error.message);
+        }
+    };
 
-        window.clearAllSessions = function() {
-            if (confirm('確定要清除所有場次嗎？')) {
-                window.sessionManager.clearAllSessions();
-                updateSessionList();
-            }
-        };
+    window.addDefaultSessions = function() {
+        const input = document.getElementById('defaultTimesInput');
+        const times = input.value.split(',').map(time => time.trim());
 
-        // 更新場次列表顯示
-        function updateSessionList() {
-            const sessionList = document.getElementById('session-list');
-            const sessions = window.sessionManager.getSessions();
-            
-            if (sessions.length === 0) {
-                sessionList.innerHTML = `
+        try {
+            window.sessionManager.addMultipleSessions(times);
+            updateSessionList();
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    window.deleteSession = function(time) {
+        window.sessionManager.deleteSession(time);
+        updateSessionList();
+    };
+
+    window.clearAllSessions = function() {
+        if (confirm(translations.confirmClear[window.currentLang])) {
+            window.sessionManager.clearAllSessions();
+            updateSessionList();
+        }
+    };
+
+    // Update session list display
+    function updateSessionList() {
+        const sessionList = document.getElementById('session-list');
+        const sessions = window.sessionManager.getSessions();
+        const currentLang = window.currentLang;
+
+        if (sessions.length === 0) {
+            sessionList.innerHTML = `
                     <div class="alert alert-info text-center">
-                        <i class="bi bi-info-circle me-2"></i>尚未新增任何場次
+                        <i class="bi bi-info-circle me-2"></i>${translations.noSessions[currentLang]}
                     </div>
                 `;
-                return;
-            }
+            return;
+        }
 
-            sessionList.innerHTML = sessions.map(session => {
-                const reminderTimes = window.sessionManager.calculateReminderTimes(session.endTime);
-                
-                return `
+        sessionList.innerHTML = sessions.map(session => {
+            const reminderTimes = window.sessionManager.calculateReminderTimes(session.endTime);
+
+            return `
                     <div class="card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <h5 class="mb-0">
-                                <i class="bi bi-clock me-2"></i>場次結束時間：${session.endTime}
+                                <i class="bi bi-clock me-2"></i>${translations.sessionEndTime[currentLang]}${session.endTime}
                                 <span class="badge bg-primary ms-2">
-                                    剩餘：${window.sessionManager.formatCountdown(
-                                        window.sessionManager.getTimeRemaining(session.endTime)
-                                    )}
+                                    ${translations.remaining[currentLang]}${window.sessionManager.formatCountdown(
+                window.sessionManager.getTimeRemaining(session.endTime)
+            )}
                                 </span>
                             </h5>
                             <button class="btn btn-outline-danger btn-sm" onclick="deleteSession('${session.endTime}')">
@@ -192,15 +277,17 @@
                                 ${reminderTimes.map(reminder => `
                                     <div class="col-md-3 mb-2">
                                         <div class="card ${
-                                            reminder.countdown.total < 0 ? 'bg-secondary text-white' : 
-                                            reminder.countdown.total <= 30000 ? 'bg-danger text-white' : 
-                                            'bg-white'
-                                        }">
+                reminder.countdown.total < 0 ? 'bg-secondary text-white' :
+                    reminder.countdown.total <= 30000 ? 'bg-danger text-white' :
+                        'bg-white'
+            }">
                                             <div class="card-body p-2 text-center">
-                                                <h6 class="card-title">${reminder.message}</h6>
-                                                <p class="card-text mb-1" style="opacity: 0.9">提醒時間：${reminder.time}</p>
+                                                <h6 class="card-title">${reminder.message[currentLang]}</h6>
+                                                <p class="card-text mb-1" style="opacity: 0.9">
+                                                    ${translations.reminderTime[currentLang]}${reminder.time}
+                                                </p>
                                                 <p class="card-text fw-bold countdown-text">
-                                                    剩餘：${window.sessionManager.formatCountdown(reminder.countdown)}
+                                                    ${translations.remaining[currentLang]}${window.sessionManager.formatCountdown(reminder.countdown)}
                                                 </p>
                                             </div>
                                         </div>
@@ -210,33 +297,36 @@
                         </div>
                     </div>
                 `;
-            }).join('');
-        }
+        }).join('');
+    }
 
-        // 更新當前時間顯示
-        function updateCurrentTime() {
-            const currentTime = new Date().toLocaleTimeString('zh-TW', {
+    // Update current time display
+    function updateCurrentTime() {
+        const currentTime = new Date().toLocaleTimeString(
+            window.currentLang === 'zh' ? 'zh-TW' : 'en-US',
+            {
                 hour: '2-digit',
                 minute: '2-digit'
-            });
-            document.getElementById('current-time').textContent = currentTime;
-        }
+            }
+        );
+        document.getElementById('current-time').textContent = currentTime;
+    }
 
-        // 初始化應用
-        function initialize() {
-            // 更新當前時間和倒數計時
-            setInterval(() => {
-                updateCurrentTime();
-                updateSessionList();
-            }, 1000);
-
-            // 立即執行一次
+    // Initialize application
+    function initialize() {
+        // Update current time and countdown timers
+        setInterval(() => {
             updateCurrentTime();
             updateSessionList();
-        }
+        }, 1000);
 
-        // 當頁面載入完成後初始化
-        document.addEventListener('DOMContentLoaded', initialize);
-    </script>
+        // Execute immediately
+        updateCurrentTime();
+        updateSessionList();
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initialize);
+</script>
 </body>
 </html>
