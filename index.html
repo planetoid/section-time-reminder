@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Reminder System | 時間提醒系統</title>
+    <title>🕑 Time Reminder System | 時間提醒系統</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
@@ -69,6 +69,38 @@
                                 <span data-lang="en" style="display: none;">Add Multiple Sessions</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminder Mechanism Options -->
+            <div class="mb-4">
+                <h3 class="mb-3">
+                    <i class="bi bi-bell me-2"></i>
+                    <span data-lang="zh">提醒機制</span>
+                    <span data-lang="en" style="display: none;">Reminder Mechanisms</span>
+                </h3>
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="titleFlashing" checked>
+                        <label class="form-check-label" for="titleFlashing">
+                            <span data-lang="zh">標題閃爍</span>
+                            <span data-lang="en" style="display: none;">Flash title</span>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="soundReminder">
+                        <label class="form-check-label" for="soundReminder">
+                            <span data-lang="zh">聲音</span>
+                            <span data-lang="en" style="display: none;">Sound</span>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="vibrationReminder">
+                        <label class="form-check-label" for="vibrationReminder">
+                            <span data-lang="zh">震動</span>
+                            <span data-lang="en" style="display: none;">Vibration</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -170,6 +202,55 @@
     // Create global instance
     window.sessionManager = new SessionManager();
     window.currentLang = 'zh';
+    const idleTitle = '🕑 Time Reminder System | 時間提醒系統';
+    const alertTitle = '⏰ Time Reminder System | 時間提醒系統';
+    const soundAlerts = new Set();
+    const vibrationAlerts = new Set();
+    let audioContext;
+    let showAlertTitle = false;
+
+    function playReminderSound() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+            return;
+        }
+
+        audioContext ??= new AudioContext();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.frequency.value = 880;
+        gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.4);
+    }
+
+    function updateReminderMechanisms(activeReminders) {
+        const titleFlashing = document.getElementById('titleFlashing').checked;
+        const soundEnabled = document.getElementById('soundReminder').checked;
+        const vibrationEnabled = document.getElementById('vibrationReminder').checked;
+
+        if (titleFlashing && activeReminders.length > 0) {
+            showAlertTitle = !showAlertTitle;
+            document.title = showAlertTitle ? alertTitle : idleTitle;
+        } else {
+            showAlertTitle = false;
+            document.title = idleTitle;
+        }
+
+        activeReminders.forEach(({ key }) => {
+            if (soundEnabled && !soundAlerts.has(key)) {
+                soundAlerts.add(key);
+                playReminderSound();
+            }
+            if (vibrationEnabled && !vibrationAlerts.has(key) && navigator.vibrate) {
+                vibrationAlerts.add(key);
+                navigator.vibrate([200, 100, 200]);
+            }
+        });
+    }
 
     // Language toggle function
     window.toggleLanguage = function() {
@@ -244,6 +325,7 @@
         const sessionList = document.getElementById('session-list');
         const sessions = window.sessionManager.getSessions();
         const currentLang = window.currentLang;
+        const activeReminders = [];
 
         if (sessions.length === 0) {
             sessionList.innerHTML = `
@@ -251,11 +333,19 @@
                         <i class="bi bi-info-circle me-2"></i>${translations.noSessions[currentLang]}
                     </div>
                 `;
+            updateReminderMechanisms(activeReminders);
             return;
         }
 
         sessionList.innerHTML = sessions.map(session => {
             const reminderTimes = window.sessionManager.calculateReminderTimes(session.endTime);
+            reminderTimes.forEach((reminder, index) => {
+                if (reminder.countdown.total >= 0 && reminder.countdown.total <= 30000) {
+                    activeReminders.push({
+                        key: `${session.endTime}-${index}`
+                    });
+                }
+            });
 
             return `
                     <div class="card mb-3">
@@ -298,6 +388,7 @@
                     </div>
                 `;
         }).join('');
+        updateReminderMechanisms(activeReminders);
     }
 
     // Update current time display
@@ -314,6 +405,19 @@
 
     // Initialize application
     function initialize() {
+        document.getElementById('titleFlashing').addEventListener('change', updateSessionList);
+        document.getElementById('soundReminder').addEventListener('change', event => {
+            if (event.target.checked) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioContext ??= new AudioContext();
+                    audioContext.resume();
+                }
+            }
+            updateSessionList();
+        });
+        document.getElementById('vibrationReminder').addEventListener('change', updateSessionList);
+
         // Update current time and countdown timers
         setInterval(() => {
             updateCurrentTime();

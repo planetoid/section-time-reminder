@@ -25,6 +25,10 @@ A web-based time management system for tracking multiple session end times with 
         - White: More than 30 seconds until reminder
         - Red: Within 30 seconds of reminder time
         - Gray: Expired reminder
+    - Selectable in-page reminder mechanisms:
+        - Flashing browser title (enabled by default)
+        - Sound
+        - Vibration (on supported devices)
 
 - **Language Support**
     - Bilingual interface (Traditional Chinese and English)
@@ -84,4 +88,3 @@ The application uses modern JavaScript features and should be compatible with:
 ## License
 
 See the [LICENSE](LICENSE) file for details.
-
