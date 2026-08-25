@@ -231,6 +231,18 @@
         const titleFlashing = document.getElementById('titleFlashing').checked;
         const soundEnabled = document.getElementById('soundReminder').checked;
         const vibrationEnabled = document.getElementById('vibrationReminder').checked;
+        const activeKeys = new Set(activeReminders.map(({ key }) => key));
+
+        soundAlerts.forEach(key => {
+            if (!activeKeys.has(key)) {
+                soundAlerts.delete(key);
+            }
+        });
+        vibrationAlerts.forEach(key => {
+            if (!activeKeys.has(key)) {
+                vibrationAlerts.delete(key);
+            }
+        });
 
         if (titleFlashing && activeReminders.length > 0) {
             showAlertTitle = !showAlertTitle;
